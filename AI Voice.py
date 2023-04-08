@@ -1,47 +1,51 @@
 import speech_recognition as sr
 import pyttsx3
+import PySimpleGUI as sg
 
-# Initialize the text-to-speech engine
+# initialize the speech recognition and text-to-speech engines
+r = sr.Recognizer()
 engine = pyttsx3.init()
 
-# Initialize the speech recognizer
-r = sr.Recognizer()
-
-
-# Function to speak the given text
+# define a function to speak text
 def speak(text):
     engine.say(text)
     engine.runAndWait()
 
+# define the layout for the PySimpleGUI window
+layout = [
+    [sg.Text("Speak to me:")],
+    [sg.Input(key="-INPUT-")],
+    [sg.Button("Speak"), sg.Button("Exit")]
+]
 
-# Function to listen for and recognize speech
-def listen():
+# create the PySimpleGUI window
+window = sg.Window("AI Chatbot", layout)
+
+# start the main event loop for the window
+while True:
+    event, values = window.read()
+
+    # exit if the user closes the window or clicks the Exit button
+    if event == sg.WINDOW_CLOSED or event == "Exit":
+        break
+
+    # use speech recognition to transcribe the user's input
     with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source)
-        print("Say something!")
         audio = r.listen(source)
         try:
-            text = r.recognize_google(audio)
-            print(f"You said: {text}")
-            return text
+            user_input = r.recognize_google(audio)
+            window["-INPUT-"].update(user_input)
         except sr.UnknownValueError:
-            print("Sorry, I didn't catch that.")
-            return None
+            speak("Sorry, I didn't catch that. Please try again.")
+            continue
 
-
-# Main loop
-while True:
-    # Listen for speech
-    text = listen()
-
-    # If speech was recognized, process the command
-    if text:
-        if "hello" in text.lower():
-            speak("Hello there!")
-        elif "what is your name" in text.lower():
-            speak("My name is Jarvis.")
-        elif "goodbye" in text.lower():
-            speak("Goodbye!")
-            break
-        else:
-            speak("I'm sorry, I don't understand that command.")
+    # AI's response based on user's input
+    if "hello" in user_input.lower():
+        speak("Hi there!")
+    elif "how are you" in user_input.lower():
+        speak("I'm doing well, thanks for asking!")
+    elif "goodbye" in user_input.lower():
+        speak("Goodbye!")
+        break
+    else:
+        speak("I'm sorry, I don't understand. Can you please rephrase your question?")
